@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef1f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1419" media="(prefers-color-scheme: dark)">
+<title>Hat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Tek sütun, telefon öncelikli. Ana ekran: numaran → birini ara → son aramalar. Arama ekranı tam ekran ve koyu. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#151c23; --muted:#5b6672; --line:#d6dde4;
+  --accent:#e2702b; --accent-ink:#ffffff; --ok:#16935c; --danger:#d93636; --warn:#c08a12;
+  --call-bg:#0b1015; --call-ink:#f2f5f8; --call-muted:#9aa7b4; --call-btn:rgba(255,255,255,.13);
+  --f-body:"Familjen Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0e1419; --surface:#161e26; --ink:#e9eef3; --muted:#93a0ad; --line:#26313c;
+    --accent:#f08a46; --accent-ink:#1a0f07; --ok:#33b67a; --danger:#ef5a5a; --warn:#e0a92e; color-scheme:dark; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+
+.wrap{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:22px;
+  padding-block:max(20px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-bottom));
+  padding-left:max(18px, env(safe-area-inset-left));padding-right:max(18px, env(safe-area-inset-right))}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:26px;letter-spacing:-.02em}
+.brand svg{width:28px;height:28px;color:var(--accent)}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:6px 11px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.pill.ok i{background:var(--ok)} .pill.bad i{background:var(--danger)}
+.pill.connecting i{animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+.label{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.mine{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.code{font-family:var(--f-mono);font-weight:700;font-size:clamp(34px,11vw,46px);letter-spacing:.06em;line-height:1.1;user-select:all;font-variant-numeric:tabular-nums}
+.code .dash{color:var(--accent)}
+.hint{color:var(--muted);font-size:14px;margin:0}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1 1 0;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;font-weight:600;font-size:15px;border:1px solid var(--line);background:var(--bg);transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn svg{width:19px;height:19px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.green{background:var(--ok);color:#fff;border-color:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.dial{display:flex;flex-direction:column;gap:12px}
+.dial input{width:100%;height:60px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);
+  font-family:var(--f-mono);font-weight:700;font-size:26px;letter-spacing:.12em;text-align:center;text-transform:uppercase}
+.dial input::placeholder{color:var(--line);letter-spacing:.12em}
+.dial input:focus{border-color:var(--accent);outline:none}
+
+.recent{display:flex;flex-direction:column;gap:2px}
+.recent button{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);text-align:left;width:100%}
+.recent button:last-child{border-bottom:0}
+.recent .dir{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);flex:none}
+.recent .dir svg{width:14px;height:14px}
+.recent .dir.missed{color:var(--danger)}
+.recent .rc{font-family:var(--f-mono);font-weight:700;letter-spacing:.06em;flex:1}
+.recent .when{color:var(--muted);font-size:13px}
+.empty{color:var(--muted);font-size:14px;margin:0}
+
+.how{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none;counter-reset:s}
+.how li{display:flex;gap:12px;font-size:14px;color:var(--muted)}
+.how li::before{counter-increment:s;content:counter(s);flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--ink)}
+.warnbox{background:color-mix(in srgb,var(--danger) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--danger) 40%,var(--line));border-radius:14px;padding:12px 14px;font-size:14px}
+
+/* ===== Arama ekranı ===== */
+.call{position:fixed;inset:0;z-index:20;background:var(--call-bg);color:var(--call-ink);display:flex;flex-direction:column;overflow:hidden}
+#remote{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.call.audio #remote,.call.camoff #remote{opacity:0}
+.avatar{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.avatar .disc{position:relative;width:132px;height:132px;border-radius:50%;background:linear-gradient(150deg,#2a3744,#141b22);display:grid;place-items:center;font-family:var(--f-mono);font-weight:700;font-size:26px;letter-spacing:.06em}
+.avatar .disc::before,.avatar .disc::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--accent);opacity:0}
+.ringing .avatar .disc::before{animation:pulse 2s infinite}
+.ringing .avatar .disc::after{animation:pulse 2s 1s infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+.call.video.live:not(.camoff) .avatar{display:none}
+
+.call-top{position:relative;z-index:2;padding:max(18px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 40px max(20px, env(safe-area-inset-left));
+  background:linear-gradient(rgba(0,0,0,.55),transparent);display:flex;flex-direction:column;gap:2px}
+.call-code{font-family:var(--f-mono);font-weight:700;font-size:22px;letter-spacing:.06em}
+.call-state{color:var(--call-muted);font-size:15px;font-variant-numeric:tabular-nums}
+
+#local{position:absolute;z-index:3;top:calc(max(18px, env(safe-area-inset-top)) + 64px);right:max(14px, env(safe-area-inset-right));
+  width:min(28vw,124px);aspect-ratio:3/4;max-width:100%;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,.25);background:#000;transform:scaleX(-1)}
+#local.back{transform:none}
+.call.audio #local{display:none}
+
+.controls{position:absolute;z-index:3;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:clamp(12px,5vw,22px);flex-wrap:wrap;
+  padding:48px max(16px, env(safe-area-inset-right)) max(30px, calc(env(safe-area-inset-bottom) + 16px)) max(16px, env(safe-area-inset-left));
+  background:linear-gradient(transparent,rgba(0,0,0,.65))}
+.cbtn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--call-muted)}
+.cbtn span.o{width:62px;height:62px;border-radius:50%;background:var(--call-btn);display:grid;place-items:center;color:var(--call-ink);backdrop-filter:blur(8px);transition:background .15s,transform .1s}
+.cbtn:active span.o{transform:scale(.93)}
+.cbtn svg{width:26px;height:26px}
+.cbtn.on span.o{background:var(--call-ink);color:var(--call-bg)}
+.cbtn.end span.o{background:var(--danger);color:#fff}
+.cbtn.accept span.o{background:var(--ok);color:#fff}
+.call.audio .only-video{display:none}
+
+/* Gelen arama */
+.incoming .controls{gap:clamp(28px,12vw,64px)}
+.incoming .inc-kind{color:var(--call-muted);font-size:15px}
+
+.toast{position:fixed;z-index:40;left:50%;bottom:max(24px, calc(env(safe-area-inset-bottom) + 16px));transform:translateX(-50%);max-width:calc(100% - 32px);
+  background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.25);text-align:center}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<main class="wrap" id="home">
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 18v-2M9 18v-6M14 18V8M19 18V4"/></svg>
+      Hat
+    </div>
+    <div class="pill connecting" id="status"><i></i><span>Bağlanıyor…</span></div>
+  </header>
+
+  <div class="warnbox" id="insecure" hidden>Bu sayfa güvenli bağlantı (https) üzerinden açılmadı. Telefonlar mikrofona ve kameraya yalnızca https sayfalarında izin verir.</div>
+
+  <section class="mine" aria-labelledby="mineLbl">
+    <div class="label" id="mineLbl">Senin numaran</div>
+    <div class="code" id="myCode">···<span class="dash">-</span>···</div>
+    <p class="hint">Seni arayacak kişiye bu kodu ver. Aranabilmek için bu sayfa açık kalmalı.</p>
+    <div class="row">
+      <button class="btn" id="copyBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        Kopyala
+      </button>
+      <button class="btn" id="shareBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+        Bağlantı paylaş
+      </button>
+    </div>
+  </section>
+
+  <section class="dial" aria-labelledby="dialLbl">
+    <label class="label" id="dialLbl" for="dialInput">Birini ara</label>
+    <input id="dialInput" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="7" placeholder="ABC-123">
+    <div class="row">
+      <button class="btn green" id="audioBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>
+        Sesli ara
+      </button>
+      <button class="btn primary" id="videoBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h11a2 2 0 0 1 2 2v1.5l4-2.5v10l-4-2.5V16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>
+        Görüntülü ara
+      </button>
+    </div>
+  </section>
+
+  <section aria-labelledby="recLbl" style="display:flex;flex-direction:column;gap:6px">
+    <div class="label" id="recLbl">Son aramalar</div>
+    <div class="recent" id="recent"></div>
+  </section>
+
+  <section aria-labelledby="howLbl" style="display:flex;flex-direction:column;gap:10px">
+    <div class="label" id="howLbl">Nasıl çalışır</div>
+    <ol class="how">
+      <li>İki kişi de bu siteyi telefonunda açar.</li>
+      <li>Biri kendi kodunu diğerine gönderir (Kopyala ya da Bağlantı paylaş).</li>
+      <li>Diğeri kodu yazıp Sesli ya da Görüntülü ara'ya basar. Ses ve görüntü iki telefon arasında doğrudan gider.</li>
+    </ol>
+  </section>
+</main>
+
+<!-- Arama ekranı -->
+<section class="call" id="call" hidden aria-live="polite">
+  <video id="remote" autoplay playsinline></video>
+  <div class="avatar"><div class="disc" id="avatarCode">ABC</div></div>
+  <div class="call-top">
+    <div class="call-code" id="callCode">ABC-123</div>
+    <div class="call-state" id="callState">Aranıyor…</div>
+  </div>
+  <video id="local" autoplay playsinline muted></video>
+  <div class="controls">
+    <button class="cbtn" id="muteBtn" type="button"><span class="o">
+      <svg class="i-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
+      <svg class="i-off" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 9.3V5a3 3 0 0 0-5.7-1.3M9 9v2a3 3 0 0 0 5.1 2.1M19 11a7 7 0 0 1-1.1 3.8M5 11a7 7 0 0 0 11.3 5.5M12 18v4M3 3l18 18"/></svg>
+    </span><span class="t">Sessiz</span></button>
+    <button class="cbtn only-video" id="camBtn" type="button"><span class="o">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H3zM16 11l5-3v8l-5-3"/></svg>
+    </span><span class="t">Kamera</span></button>
+    <button class="cbtn only-video" id="flipBtn" type="button"><span class="o">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></svg>
+    </span><span class="t">Çevir</span></button>
+    <button class="cbtn end" id="hangBtn" type="button"><span class="o">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-2.4 0-4.6.5-6.6 1.4-.6.3-1 .9-1 1.6v2.6c0 .8.8 1.4 1.6 1.2l3-.8c.6-.2 1-.7 1-1.3V12a11 11 0 0 1 4 0v1.7c0 .6.4 1.1 1 1.3l3 .8c.8.2 1.6-.4 1.6-1.2V12c0-.7-.4-1.3-1-1.6A15.6 15.6 0 0 0 12 9z"/></svg>
+    </span><span class="t">Kapat</span></button>
+  </div>
+</section>
+
+<!-- Gelen arama -->
+<section class="call incoming ringing audio" id="incoming" hidden aria-live="assertive">
+  <div class="avatar"><div class="disc" id="incAvatar">ABC</div></div>
+  <div class="call-top">
+    <div class="call-code" id="incCode">ABC-123</div>
+    <div class="inc-kind" id="incKind">Gelen sesli arama</div>
+  </div>
+  <div class="controls">
+    <button class="cbtn end" id="declineBtn" type="button"><span class="o">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-2.4 0-4.6.5-6.6 1.4-.6.3-1 .9-1 1.6v2.6c0 .8.8 1.4 1.6 1.2l3-.8c.6-.2 1-.7 1-1.3V12a11 11 0 0 1 4 0v1.7c0 .6.4 1.1 1 1.3l3 .8c.8.2 1.6-.4 1.6-1.2V12c0-.7-.4-1.3-1-1.6A15.6 15.6 0 0 0 12 9z"/></svg>
+    </span><span class="t">Reddet</span></button>
+    <button class="cbtn accept" id="acceptAudioBtn" type="button"><span class="o">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>
+    </span><span class="t">Sesli aç</span></button>
+    <button class="cbtn accept" id="acceptVideoBtn" type="button"><span class="o">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h11a2 2 0 0 1 2 2v1.5l4-2.5v10l-4-2.5V16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>
+    </span><span class="t">Görüntülü aç</span></button>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(() => {
+  const PREFIX = 'hat-tr-v1-';
+  const ALPH = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const RING_TIMEOUT = 45000;
+  const ICE = { iceServers: [
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+    { urls: 'stun:global.stun.twilio.com:3478' }
+  ]};
+
+  const $ = s => document.querySelector(s);
+  const ls = {
+    get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+  };
+  const fmt = c => c.slice(0,3) + '-' + c.slice(3);
+  const clean = v => v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+  function newCode(){ const a = new Uint32Array(6); crypto.getRandomValues(a); return [...a].map(n => ALPH[n % ALPH.length]).join(''); }
+
+  let myCode = ls.get('hat.code') || newCode();
+  let peer = null;
+  let st = null; // aktif görüşmenin durumu
+
+  /* ---------- Arayüz yardımcıları ---------- */
+  function setStatus(kind, text){ const p = $('#status'); p.className = 'pill ' + kind; p.querySelector('span').textContent = text; }
+  let toastT;
+  function toast(msg, ms = 3200){ const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms); }
+  function renderCode(){ $('#myCode').innerHTML = myCode.slice(0,3) + '<span class="dash">-</span>' + myCode.slice(3); }
+
+  function recentList(){ try { return JSON.parse(ls.get('hat.recent') || '[]'); } catch(e){ return []; } }
+  function addRecent(code, dir){
+    const list = recentList().filter(r => !(r.code === code && r.dir === dir));
+    list.unshift({ code, dir, ts: Date.now() }); ls.set('hat.recent', JSON.stringify(list.slice(0, 6))); renderRecent();
+  }
+  function ago(ts){
+    const m = Math.round((Date.now() - ts) / 60000);
+    if (m < 1) return 'şimdi'; if (m < 60) return m + ' dk önce';
+    const h = Math.round(m / 60); if (h < 24) return h + ' sa önce';
+    return Math.round(h / 24) + ' gün önce';
+  }
+  const ICONS = {
+    out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+    in: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M17 7 7 17M15 17H7V9"/></svg>'
+  };
+  function renderRecent(){
+    const box = $('#recent'); const list = recentList();
+    if (!list.length){ box.innerHTML = '<p class="empty">Henüz arama yok. Yaptığın ve aldığın aramalar burada görünür.</p>'; return; }
+    box.innerHTML = list.map(r => `<button type="button" data-code="${r.code}">
+      <span class="dir ${r.dir === 'missed' ? 'missed' : ''}">${r.dir === 'out' ? ICONS.out : ICONS.in}</span>
+      <span class="rc">${fmt(r.code)}</span><span class="when">${r.dir === 'missed' ? 'cevapsız · ' : ''}${ago(r.ts)}</span></button>`).join('');
+  }
+  $('#recent').addEventListener('click', e => {
+    const b = e.target.closest('button[data-code]'); if (!b) return;
+    $('#dialInput').value = fmt(b.dataset.code); $('#dialInput').focus();
+  });
+
+  /* ---------- Sesler (WebAudio) ---------- */
+  let ac = null, toneTimer = null, toneNodes = [];
+  function audioCtx(){ if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} } if (ac && ac.state === 'suspended') ac.resume(); return ac; }
+  document.addEventListener('pointerdown', audioCtx, { once: true });
+  function beep(freqs, dur){
+    const c = audioCtx(); if (!c) return;
+    const g = c.createGain(); g.gain.value = 0.0001; g.connect(c.destination);
+    const t = c.currentTime; g.gain.exponentialRampToValueAtTime(0.18, t + 0.03); g.gain.setValueAtTime(0.18, t + dur - 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    freqs.forEach(f => { const o = c.createOscillator(); o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + dur); toneNodes.push(o); });
+  }
+  function stopTone(){ clearInterval(toneTimer); toneTimer = null; toneNodes.forEach(o => { try { o.stop(); } catch(e){} }); toneNodes = []; if (navigator.vibrate) navigator.vibrate(0); }
+  // Avrupa/Türkiye çalma sesi: 425 Hz, 1 sn açık / 4 sn kapalı
+  function ringback(){ stopTone(); beep([425], 1); toneTimer = setInterval(() => beep([425], 1), 5000); }
+  function ringtone(){
+    stopTone();
+    const once = () => { beep([880, 1320], .35); setTimeout(() => beep([880, 1320], .35), 450); if (navigator.vibrate) navigator.vibrate([400, 200, 400]); };
+    once(); toneTimer = setInterval(once, 2500);
+  }
+  function endTone(){ stopTone(); beep([480, 620], .25); setTimeout(() => beep([480, 620], .25), 400); }
+
+  /* ---------- Bağlantı (PeerJS) ---------- */
+  function startPeer(){
+    if (typeof Peer === 'undefined'){ setStatus('bad', 'Yüklenemedi'); toast('Arama kitaplığı yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.'); return; }
+    setStatus('connecting', 'Bağlanıyor…');
+    peer = new Peer(PREFIX + myCode, { config: ICE, debug: 0 });
+    peer.on('open', () => { ls.set('hat.code', myCode); renderCode(); setStatus('ok', 'Aranabilir'); });
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id'){ peer.destroy(); myCode = newCode(); startPeer(); return; }
+      if (err.type === 'peer-unavailable'){ if (st && st.dir === 'out') endCall('Bu numaraya şu an ulaşılamıyor. Karşı tarafın sayfası açık olmalı.'); return; }
+      if (err.type === 'browser-incompatible'){ setStatus('bad', 'Desteklenmiyor'); toast('Bu tarayıcı aramayı desteklemiyor. Chrome ya da Safari dene.'); return; }
+      if (['network','server-error','socket-error','socket-closed','disconnected'].includes(err.type)){ setStatus('bad', 'Bağlantı yok'); scheduleReconnect(); return; }
+      console.warn(err);
+    });
+    peer.on('disconnected', () => { setStatus('connecting', 'Yeniden bağlanıyor…'); scheduleReconnect(); });
+    peer.on('connection', onIncomingConn);
+    peer.on('call', onMediaCall);
+  }
+  let rcT;
+  function scheduleReconnect(){ clearTimeout(rcT); rcT = setTimeout(() => { if (peer && !peer.destroyed && peer.disconnected) peer.reconnect(); }, 2500); }
+  window.addEventListener('online', scheduleReconnect);
+
+  /* ---------- Medya ---------- */
+  async function getMedia(video, facing = 'user'){
+    const constraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      video: video ? { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } } : false };
+    try { return await navigator.mediaDevices.getUserMedia(constraints); }
+    catch (e) {
+      if (video){ try { toast('Kamera açılamadı, sesli devam ediliyor.'); return await navigator.mediaDevices.getUserMedia({ audio: constraints.audio }); } catch(e2){} }
+      throw e;
+    }
+  }
+  function mediaError(e){
+    if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) return 'Mikrofon izni verilmedi. Tarayıcı ayarlarından bu siteye mikrofon izni ver.';
+    if (e && e.name === 'NotFoundError') return 'Mikrofon bulunamadı.';
+    return 'Mikrofon açılamadı.';
+  }
+
+  /* ---------- Arama ekranı ---------- */
+  function showCallUI(code, video, stateText){
+    const c = $('#call'); c.hidden = false;
+    c.className = 'call ringing ' + (video ? 'video' : 'audio');
+    $('#callCode').textContent = fmt(code); $('#avatarCode').textContent = code.slice(0,3);
+    $('#callState').textContent = stateText;
+    setToggle($('#muteBtn'), false); setToggle($('#camBtn'), false);
+    requestWake();
+  }
+  function setToggle(btn, on){
+    btn.classList.toggle('on', on);
+    const a = btn.querySelector('.i-on'), b = btn.querySelector('.i-off');
+    if (a && b){ a.hidden = on; b.hidden = !on; }
+  }
+  function showLocal(stream){
+    const v = $('#local'); v.srcObject = stream; v.classList.toggle('back', st && st.facing === 'environment'); v.play().catch(()=>{});
+  }
+  function startTimer(){
+    st.start = Date.now();
+    const tick = () => { const s = Math.floor((Date.now() - st.start) / 1000); $('#callState').textContent = String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0'); };
+    tick(); st.timer = setInterval(tick, 1000);
+  }
+
+  let wake = null;
+  async function requestWake(){ try { if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); } catch(e){} }
+  function releaseWake(){ try { wake && wake.release(); } catch(e){} wake = null; }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && st) requestWake(); });
+
+  function send(msg){ try { st && st.dc && st.dc.open && st.dc.send(msg); } catch(e){} }
+
+  /* ---------- Giden arama ---------- */
+  async function dial(video){
+    const code = clean($('#dialInput').value);
+    if (code.length !== 6){ toast('Kod 6 karakter olmalı, örneğin ' + fmt('K7M2QP') + '.'); $('#dialInput').focus(); return; }
+    if (code === myCode){ toast('Kendi numaranı arayamazsın.'); return; }
+    if (!peer || peer.disconnected || !peer.open){ toast('Henüz sunucuya bağlı değilsin. Birkaç saniye bekle.'); return; }
+    if (st) return;
+    audioCtx();
+    let stream;
+    try { stream = await getMedia(video); } catch(e){ toast(mediaError(e), 5000); return; }
+    video = stream.getVideoTracks().length > 0;
+    st = { dir: 'out', code, video, stream, facing: 'user', answered: false };
+    addRecent(code, 'out');
+    showCallUI(code, video, 'Bağlanıyor…');
+    if (video) showLocal(stream);
+
+    const dc = peer.connect(PREFIX + code, { metadata: { video, from: myCode }, reliable: true });
+    st.dc = dc;
+    st.connT = setTimeout(() => { if (st && st.dc === dc && !dc.open) endCall('Bağlantı kurulamadı. Ağ doğrudan bağlantıya izin vermiyor olabilir; başka bir ağ (Wi-Fi ↔ mobil veri) dene.'); }, 20000);
+    dc.on('open', () => {
+      clearTimeout(st && st.connT);
+      if (!st || st.dc !== dc) return;
+      $('#callState').textContent = 'Çalıyor…'; ringback();
+      st.ringT = setTimeout(() => { send({ t: 'cancel' }); endCall('Cevap yok.'); }, RING_TIMEOUT);
+    });
+    dc.on('data', m => handleMsg(m, dc));
+    dc.on('close', () => { if (st && st.dc === dc) endCall(st.answered ? 'Görüşme bitti.' : null); });
+    dc.on('error', () => {});
+  }
+
+  function handleMsg(m, dc){
+    if (!st || st.dc !== dc || !m || !m.t) return;
+    if (m.t === 'accept' && st.dir === 'out'){
+      clearTimeout(st.ringT); stopTone(); st.answered = true;
+      $('#callState').textContent = 'Bağlanıyor…';
+      const call = peer.call(PREFIX + st.code, st.stream, { metadata: { video: st.video } });
+      wireCall(call);
+    } else if (m.t === 'reject'){ endCall('Arama reddedildi.'); }
+    else if (m.t === 'busy'){ endCall('Meşgul.'); }
+    else if (m.t === 'cancel'){ if (st.dir === 'in' && !st.answered){ addRecent(st.code, 'missed'); } endCall(st.dir === 'in' && !st.answered ? 'Cevapsız arama: ' + fmt(st.code) : null); }
+    else if (m.t === 'bye'){ endCall('Görüşme bitti.'); }
+    else if (m.t === 'cam'){ $('#call').classList.toggle('camoff', !m.on); }
+  }
+
+  function wireCall(call){
+    st.call = call;
+    call.on('stream', remote => {
+      if (st.gotStream) return; st.gotStream = true;
+      const v = $('#remote'); v.srcObject = remote; v.muted = false; v.play().catch(() => toast('Sesi duymak için ekrana dokun.'));
+      const c = $('#call'); c.classList.remove('ringing'); c.classList.add('live');
+      if (remote.getVideoTracks().length === 0) c.classList.add('camoff');
+      startTimer();
+    });
+    call.on('close', () => endCall('Görüşme bitti.'));
+    call.on('error', () => endCall('Bağlantı koptu.'));
+    // ICE başarısızlığını yakala
+    setTimeout(() => {
+      const pc = call.peerConnection; if (!pc) return;
+      pc.addEventListener('iceconnectionstatechange', () => {
+        if (!st || st.call !== call) return;
+        if (pc.iceConnectionState === 'disconnected') $('#callState').textContent = 'Bağlantı zayıf…';
+        if (pc.iceConnectionState === 'failed') endCall('Bağlantı kurulamadı. Ağlardan biri doğrudan bağlantıyı engelliyor olabilir.');
+        if (pc.iceConnectionState === 'connected' && st.timer) {/* sayaç devam eder */}
+      });
+    }, 0);
+  }
+  $('#remote').addEventListener('click', () => $('#remote').play().catch(()=>{}));
+
+  /* ---------- Gelen arama ---------- */
+  function onIncomingConn(dc){
+    const meta = dc.metadata || {};
+    const code = clean(meta.from || dc.peer.replace(PREFIX, ''));
+    if (st){ // meşgul
+      dc.on('open', () => { try { dc.send({ t: 'busy' }); } catch(e){} setTimeout(() => dc.close(), 800); });
+      addRecent(code, 'missed'); return;
+    }
+    st = { dir: 'in', code, video: !!meta.video, dc, facing: 'user', answered: false };
+    dc.on('open', () => {
+      if (!st || st.dc !== dc) return;
+      const box = $('#incoming'); box.hidden = false;
+      $('#incCode').textContent = fmt(code); $('#incAvatar').textContent = code.slice(0,3);
+      $('#incKind').textContent = st.video ? 'Gelen görüntülü arama' : 'Gelen sesli arama';
+      $('#acceptVideoBtn').hidden = !st.video;
+      ringtone(); requestWake();
+      st.ringT = setTimeout(() => { if (st && st.dc === dc && !st.answered){ send({ t: 'reject' }); addRecent(code, 'missed'); endCall(null); } }, RING_TIMEOUT + 5000);
+    });
+    dc.on('data', m => handleMsg(m, dc));
+    dc.on('close', () => { if (st && st.dc === dc){ if (!st.answered) addRecent(code, 'missed'); endCall(st.answered ? 'Görüşme bitti.' : null); } });
+    dc.on('error', () => {});
+  }
+
+  async function accept(video){
+    if (!st || st.dir !== 'in' || st.answered) return;
+    stopTone(); clearTimeout(st.ringT);
+    let stream;
+    try { stream = await getMedia(video); } catch(e){ toast(mediaError(e), 5000); decline(); return; }
+    st.stream = stream; st.video = stream.getVideoTracks().length > 0; st.answered = true;
+    addRecent(st.code, 'in');
+    $('#incoming').hidden = true;
+    showCallUI(st.code, st.video, 'Bağlanıyor…');
+    if (st.video) showLocal(stream);
+    send({ t: 'accept', video: st.video });
+    st.acceptT = setTimeout(() => { if (st && !st.gotStream) endCall('Bağlantı kurulamadı. Ağlardan biri doğrudan bağlantıyı engelliyor olabilir.'); }, 25000);
+  }
+  function onMediaCall(call){
+    if (!st || st.dir !== 'in' || !st.answered || st.call || call.peer !== PREFIX + st.code){ call.close(); return; }
+    call.answer(st.stream);
+    wireCall(call);
+  }
+  function decline(){ if (!st) return; send({ t: 'reject' }); setTimeout(() => endCall(null), 150); }
+
+  /* ---------- Kapat / temizle ---------- */
+  function endCall(msg){
+    if (!st) return;
+    const s = st; st = null;
+    [s.ringT, s.connT, s.acceptT].forEach(clearTimeout); clearInterval(s.timer);
+    if (s.dc && s.dc.open){ try { s.dc.send({ t: s.answered ? 'bye' : 'cancel' }); } catch(e){} }
+    setTimeout(() => { try { s.dc && s.dc.close(); } catch(e){} }, 300);
+    try { s.call && s.call.close(); } catch(e){}
+    if (s.stream) s.stream.getTracks().forEach(t => t.stop());
+    $('#remote').srcObject = null; $('#local').srcObject = null;
+    $('#call').hidden = true; $('#incoming').hidden = true; $('#call').className = 'call';
+    stopTone(); if (s.answered || s.dir === 'out') endTone();
+    releaseWake();
+    if (msg) toast(msg, 4500);
+  }
+  function hangup(){ if (!st) return; send({ t: st.answered ? 'bye' : 'cancel' }); endCall(null); }
+
+  /* ---------- Kontroller ---------- */
+  $('#muteBtn').addEventListener('click', () => {
+    if (!st || !st.stream) return;
+    const tr = st.stream.getAudioTracks()[0]; if (!tr) return;
+    tr.enabled = !tr.enabled; setToggle($('#muteBtn'), !tr.enabled);
+    toast(tr.enabled ? 'Mikrofon açık' : 'Sessize alındı', 1400);
+  });
+  $('#camBtn').addEventListener('click', () => {
+    if (!st || !st.stream) return;
+    const tr = st.stream.getVideoTracks()[0]; if (!tr) return;
+    tr.enabled = !tr.enabled; setToggle($('#camBtn'), !tr.enabled);
+    $('#local').style.opacity = tr.enabled ? 1 : .25;
+    send({ t: 'cam', on: tr.enabled });
+  });
+  $('#flipBtn').addEventListener('click', async () => {
+    if (!st || !st.stream || !st.video) return;
+    const facing = st.facing === 'user' ? 'environment' : 'user';
+    try {
+      const ns = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: facing } } })
+        .catch(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: facing } }));
+      const nt = ns.getVideoTracks()[0]; const old = st.stream.getVideoTracks()[0];
+      if (old){ nt.enabled = old.enabled; st.stream.removeTrack(old); old.stop(); }
+      st.stream.addTrack(nt); st.facing = facing;
+      const pc = st.call && st.call.peerConnection;
+      if (pc){ const snd = pc.getSenders().find(x => x.track && x.track.kind === 'video') || pc.getSenders().find(x => !x.track); if (snd) await snd.replaceTrack(nt); }
+      showLocal(st.stream);
+    } catch(e){ toast('Diğer kamera açılamadı.'); }
+  });
+  $('#hangBtn').addEventListener('click', hangup);
+  $('#declineBtn').addEventListener('click', decline);
+  $('#acceptAudioBtn').addEventListener('click', () => accept(false));
+  $('#acceptVideoBtn').addEventListener('click', () => accept(true));
+  $('#audioBtn').addEventListener('click', () => dial(false));
+  $('#videoBtn').addEventListener('click', () => dial(true));
+
+  const dialInput = $('#dialInput');
+  dialInput.addEventListener('input', () => {
+    const c = clean(dialInput.value); dialInput.value = c.length > 3 ? fmt(c) : c;
+  });
+  dialInput.addEventListener('keydown', e => { if (e.key === 'Enter') dial(false); });
+
+  function shareLink(){ return location.origin + location.pathname + '#' + myCode; }
+  $('#copyBtn').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(fmt(myCode)); toast('Kod kopyalandı: ' + fmt(myCode), 1800); }
+    catch(e){ const r = document.createRange(); r.selectNodeContents($('#myCode')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Kodu seçtim, kopyalayabilirsin.'); }
+  });
+  $('#shareBtn').addEventListener('click', async () => {
+    const url = shareLink();
+    const text = 'Beni Hat üzerinden ara. Numaram: ' + fmt(myCode);
+    if (navigator.share){ try { await navigator.share({ title: 'Hat', text, url }); return; } catch(e){ if (e.name === 'AbortError') return; } }
+    try { await navigator.clipboard.writeText(text + '\n' + url); toast('Bağlantı kopyalandı.', 1800); } catch(e){ toast(url, 6000); }
+  });
+
+  /* ---------- Başlat ---------- */
+  function readHash(){ const h = clean(decodeURIComponent(location.hash.slice(1))); if (h.length === 6 && h !== myCode){ dialInput.value = fmt(h); toast(fmt(h) + ' numarası hazır. Aramak için bir düğmeye bas.'); } }
+  window.addEventListener('hashchange', readHash);
+  window.addEventListener('beforeunload', () => { if (st) hangup(); });
+  if (!window.isSecureContext || !navigator.mediaDevices) $('#insecure').hidden = false;
+  renderCode(); renderRecent(); readHash(); startPeer();
+  setInterval(renderRecent, 60000);
+})();
+</script>
+</body>
+</html>
